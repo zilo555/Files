@@ -500,10 +500,10 @@ namespace Files.App.Views
 
 		private void SidebarControl_ItemInvoked(object sender, ItemInvokedEventArgs e)
 		{
-			if (sender is not SidebarItem sidebarItem)
+			if (sender is not SidebarItem { Item: ISidebarItemModel item })
 				return;
 
-			SidebarAdaptiveViewModel.HandleItemInvokedAsync(sidebarItem.Item, e.PointerUpdateKind);
+			SidebarAdaptiveViewModel.HandleItemInvokedAsync(item, e.PointerUpdateKind);
 		}
 	}
 }

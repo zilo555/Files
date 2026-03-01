@@ -2,12 +2,19 @@
 // Licensed under the MIT License.
 
 using CommunityToolkit.WinUI;
-using System.Collections.Specialized;
 
 namespace Files.App.Controls
 {
 	public sealed partial class SidebarItem : Control
 	{
+		public SidebarView? Owner
+		{
+			get { return (SidebarView?)GetValue(OwnerProperty); }
+			set { SetValue(OwnerProperty, value); }
+		}
+		public static readonly DependencyProperty OwnerProperty =
+			DependencyProperty.Register(nameof(Owner), typeof(SidebarView), typeof(SidebarItem), new PropertyMetadata(null));
+
 		public bool IsSelected
 		{
 			get { return (bool)GetValue(IsSelectedProperty); }
@@ -24,6 +31,14 @@ namespace Files.App.Controls
 		public static readonly DependencyProperty IsExpandedProperty =
 			DependencyProperty.Register(nameof(IsExpanded), typeof(bool), typeof(SidebarItem), new PropertyMetadata(true, OnPropertyChanged));
 
+		public bool IsInFlyout
+		{
+			get { return (bool)GetValue(IsInFlyoutProperty); }
+			set { SetValue(IsInFlyoutProperty, value); }
+		}
+		public static readonly DependencyProperty IsInFlyoutProperty =
+			DependencyProperty.Register(nameof(IsInFlyout), typeof(bool), typeof(SidebarItem), new PropertyMetadata(false));
+
 		public double ChildrenPresenterHeight
 		{
 			get { return (double)GetValue(ChildrenPresenterHeightProperty); }
@@ -32,6 +47,14 @@ namespace Files.App.Controls
 		// Using 30 as a default in case something goes wrong
 		public static readonly DependencyProperty ChildrenPresenterHeightProperty =
 			DependencyProperty.Register(nameof(ChildrenPresenterHeight), typeof(double), typeof(SidebarItem), new PropertyMetadata(30d));
+
+		public ISidebarItemModel? Item
+		{
+			get { return (ISidebarItemModel)GetValue(ItemProperty); }
+			set { SetValue(ItemProperty, value); }
+		}
+		public static readonly DependencyProperty ItemProperty =
+			DependencyProperty.Register(nameof(Item), typeof(ISidebarItemModel), typeof(SidebarItem), new PropertyMetadata(null));
 
 		public bool UseReorderDrop
 		{
@@ -71,52 +94,16 @@ namespace Files.App.Controls
 		[GeneratedDependencyProperty]
 		public partial object? ToolTip { get; set; }
 
-		[GeneratedDependencyProperty]
-		public partial bool IsPaddedItem { get; set; }
-
-		[GeneratedDependencyProperty]
-		public partial object? Children { get; set; }
-
-		[GeneratedDependencyProperty, Obsolete]
-		public partial object? Item { get; set; }
-
-		[GeneratedDependencyProperty]
-		public partial SidebarView? Owner { get; set; }
-
-		[GeneratedDependencyProperty]
-		public partial bool IsInFlyout { get; set; }
-
-		partial void OnChildrenPropertyChanged(DependencyPropertyChangedEventArgs e)
+		public static void SetTemplateRoot(DependencyObject target, FrameworkElement value)
 		{
-			if (e.OldValue is INotifyCollectionChanged oldNCC)
-				oldNCC.CollectionChanged -= ChildItems_CollectionChanged;
-			if (e.NewValue is INotifyCollectionChanged newNCC)
-				newNCC.CollectionChanged += ChildItems_CollectionChanged;
+			target.SetValue(TemplateRootProperty, value);
 		}
-
-		partial void OnOwnerPropertyChanged(DependencyPropertyChangedEventArgs e)
+		public static FrameworkElement GetTemplateRoot(DependencyObject target)
 		{
-			if (Owner is null)
-				return;
-
-			DisplayMode = Owner.DisplayMode;
-
-			Owner.RegisterPropertyChangedCallback(SidebarView.DisplayModeProperty, (sender, args) =>
-			{
-				DisplayMode = Owner.DisplayMode;
-			});
-			Owner.RegisterPropertyChangedCallback(SidebarView.SelectedItemProperty, (sender, args) =>
-			{
-				ReevaluateSelection();
-			});
-
-			ReevaluateSelection();
+			return (FrameworkElement)target.GetValue(TemplateRootProperty);
 		}
-
-		partial void OnIsInFlyoutPropertyChanged(DependencyPropertyChangedEventArgs e)
-		{
-			VisualStateManager.GoToState(this, DisplayMode is SidebarDisplayMode.Compact && !IsInFlyout ? "Compact" : "NonCompact", true);
-		}
+		public static readonly DependencyProperty TemplateRootProperty =
+			DependencyProperty.Register("TemplateRoot", typeof(FrameworkElement), typeof(FrameworkElement), new PropertyMetadata(null));
 
 		public static void OnPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
 		{
