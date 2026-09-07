@@ -23,6 +23,11 @@ namespace Files.App.Utils.Cloud
 
 		protected override async IAsyncEnumerable<ICloudProvider> GetProviders()
 		{
+			// The virtual drive only responds while Google Drive is running; probing it otherwise (e.g. a
+			// stale registry/database left after removal) blocks the shell for ~19s, so skip when it isn't.
+			if (!IsGoogleDriveRunning())
+				yield break;
+
 			// Google Drive's sync database can be in a couple different locations. Go find it.
 			string appDataPath = UserDataPaths.GetDefault().LocalAppData;
 
@@ -136,6 +141,15 @@ namespace Files.App.Utils.Cloud
 				SyncFolder = googleDrivePath,
 				IconData = iconFile is not null ? await iconFile.ToByteArrayAsync() : null
 			};
+		}
+
+		private static bool IsGoogleDriveRunning()
+		{
+			var processes = Process.GetProcessesByName("GoogleDriveFS");
+			foreach (var process in processes)
+				process.Dispose();
+
+			return processes.Length != 0;
 		}
 
 		private static async Task Inspect(SqliteConnection database, string sqlCommand, string targetDescription)

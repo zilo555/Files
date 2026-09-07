@@ -28,11 +28,9 @@ namespace Files.App.Utils.Cloud
 
 		public static async Task UpdateDrivesAsync()
 		{
-			var providers = await _detector.DetectCloudProvidersAsync();
-			if (providers is null)
-				return;
-
-			foreach (var provider in providers)
+			// Add each provider as its detector finishes, so a slow one (e.g. Google Drive's virtual
+			// drive) never holds up the rest of the cloud drives or the sidebar.
+			await foreach (var provider in _detector.DetectCloudProvidersProgressiveAsync())
 			{
 				_logger?.LogInformation($"Adding cloud provider {provider.ID} mapped to {LogPathHelper.RedactUserName(provider.SyncFolder)}");
 
